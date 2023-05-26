@@ -1,55 +1,46 @@
 import fs from 'fs';
-import path from 'path';
 import pdf from 'pdf-parse'
-import LoadData from '@/component/loadpdf/page';
-import { get } from 'http';
-import { edgeServerAppPaths } from 'next/dist/build/webpack/plugins/pages-manifest-plugin';
+
+import LoadPdf from '@/component/loadpdf/page';
 
 
 
+  const  GetData =async ()=> {
+    
+  let dataBuffer = fs.readFileSync('./test/data/all-result2023.txt', 'utf-8');
+  var data = JSON.stringify(dataBuffer)
+      var rawData = data;
+      var collages = data?.match(/\d{5}/g);
+      
+    const clgArr=[];
+    const endLocation=[];
+    const newData=[];
 
-  const  GetData  = async ()=> {
+      for(var b = 0; b<= collages?.length;b=b+1){
+                if(rawData[rawData.indexOf(collages[b])+6] == '-'){
+                    for(var e = rawData.indexOf(collages[b])+6; e<=rawData.length; e= e+1){
+                        if(rawData[e] == ','){
+                            clgArr.push(rawData.slice(rawData.indexOf(collages[b])+7,e-1))
+                            break
+                        }
+                    }
+                }
+            }
+            var notes = Array.from(rawData?.matchAll("Note:"))
+            notes.map((note)=> endLocation.push(note.index))
+            for(let times= 0; times<clgArr.length; times++){
+                let trimedData = {
+                    college: clgArr[times],
+                    data: rawData.slice(rawData.indexOf(clgArr[times]),endLocation[times])
+                }
+                newData.push(trimedData)
+            }
 
-    var allLocation = []
-  
-    const getAll =async () =>{
-      "use server"
-      fs.readdir('./test/data',function(err, data){
-        if(err){
-          console.log(err)
-          return;
-        }
-        var gg = data.text
-        // return JSON.stringify(data)
-        // data.map((file)=>{
-        //   let dataBuffer = fs.readFileSync('./test/data/'+file);
-        //   pdf(dataBuffer).then(function(data) { 
-        //     return <LoadData data={data.text}/>
-        // });
-        // })
-        console.log(gg)
-      })
-    }
-    // getAll(another)
-    // console.log('=--------------=')
-    // console.log(getAll())
-    getAll()
   return (
     <div className="container">
       {  
-      fs.readdir('./test/data',function(err, data){
-        // if(err){
-        //   console.log(err)
-        //   return;
-        // }
-        data.map((file)=>{
-          let dataBuffer = fs.readFileSync('./test/data/'+file);
-          return pdf(dataBuffer).then(function(data) { 
-            return <LoadData data={data.text}/>
-        });
-        })
-      })
-      }
+    <LoadPdf data = {newData} rawData={rawData}/>
+    }
     </div>
   );
 }
